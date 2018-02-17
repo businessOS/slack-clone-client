@@ -1,23 +1,23 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { ApolloClient, createNetworkInterface, ApolloProvider } from 'react-apollo';
+
+import { ApolloClient } from 'apollo-client';
+import { ApolloProvider } from 'react-apollo';
+import { HttpLink } from 'apollo-link-http';
+import { InMemoryCache } from 'apollo-cache-inmemory';
 
 import Routes from './routes';
 import registerServiceWorker from './registerServiceWorker';
 
-const networkInterface = createNetworkInterface({
-  uri: 'http://localhost:8081/graphql',
-});
-
 const client = new ApolloClient({
-  networkInterface,
+  link: new HttpLink({ uri: 'http://localhost:8081/graphql' }),
+  cache: new InMemoryCache(),
 });
 
-const App = (
+ReactDOM.render(
   <ApolloProvider client={client}>
     <Routes />
-  </ApolloProvider>
+  </ApolloProvider>,
+  document.getElementById('root'),
 );
-
-ReactDOM.render(App, document.getElementById('root'));
 registerServiceWorker();
