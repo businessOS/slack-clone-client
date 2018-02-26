@@ -1,19 +1,18 @@
 import React from 'react';
-import { graphql } from 'react-apollo';
-import gql from 'graphql-tag';
-import findIndex from 'lodash/findIndex';
 import decode from 'jwt-decode';
 
 import Channels from '../components/Channels';
 import Teams from '../components/Teams';
-import AddChannelModal from '../components/addChannelModal';
+import AddChannelModal from '../components/AddChannelModal';
+import InvitePeoplelModal from '../components/InvitePeoplelModal';
 
-class Sidebar extends React.Component {
+export default class Sidebar extends React.Component {
   state = {
     openAddChannelModal: false,
-  }
+    openInvitePeoplelModal: false,
+  };
 
-  handleCloseAddChannelClick = () => {
+  handleCloseAddChannelModal = () => {
     this.setState({ openAddChannelModal: false });
   };
 
@@ -21,15 +20,17 @@ class Sidebar extends React.Component {
     this.setState({ openAddChannelModal: true });
   };
 
+  handleInvitePeopleClick = () => {
+    this.setState({ openInvitePeoplelModal: true });
+  };
+
+  handleCloseInvitePeopleClick = () => {
+    this.setState({ openInvitePeoplelModal: false });
+  };
+
   render() {
-    const { data: { loading, allTeams }, currentTeamId } = this.props;
-
-    if (loading) {
-      return null;
-    }
-
-    const teamIdx = currentTeamId ? findIndex(allTeams, ['id', parseInt(currentTeamId, 11)]) : 0;
-    const team = allTeams[teamIdx];
+    const { teams, team } = this.props;
+    const { openInvitePeoplelModal, openAddChannelModal } = this.state;
 
     let username = '';
     try {
@@ -38,46 +39,33 @@ class Sidebar extends React.Component {
       // eslint-disable-next-line prefer-destructuring
       username = user.username;
     } catch (err) {
-      // eslint-disable-next-line empty-block
+      // eslint-disable-next-line no-empty
     }
 
     return [
-      <Teams
-        key="team-sidebar"
-        teams={allTeams.map(t => ({
-          id: t.id,
-          letter: t.name.charAt(0).toUpperCase(),
-        }))}
-      />,
+      <Teams key="team-sidebar" teams={teams} />,
       <Channels
         key="channels-sidebar"
         teamName={team.name}
         username={username}
+        teamId={team.id}
         channels={team.channels}
         users={[{ id: 1, name: 'slackbot' }, { id: 2, name: 'user1' }]}
         onAddChannelClick={this.handleAddChannelClick}
+        onInvitePeopleClick={this.handleInvitePeopleClick}
       />,
       <AddChannelModal
-        onClose={this.handleCloseAddChannelClick}
-        open={this.state.openAddChannelModal}
-        key="sidebar-add-channel-modal"
         teamId={team.id}
-        teamName={team.name}
+        onClose={this.handleCloseAddChannelModal}
+        open={openAddChannelModal}
+        key="sidebar-add-channel-modal"
+      />,
+      <InvitePeoplelModal
+        teamId={team.id}
+        onClose={this.handleCloseInvitePeopleClick}
+        open={openInvitePeoplelModal}
+        key="invite-people-modal"
       />,
     ];
   }
 }
-const allTeamsQuery = gql`
-  {
-    allTeams {
-      id
-      name
-      channels {
-        id
-        name
-      }
-    }
-  }
-`;
-
-export default graphql(allTeamsQuery)(Sidebar);

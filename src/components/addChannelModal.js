@@ -1,47 +1,41 @@
 import React from 'react';
-import { Form, Button, Input, Modal } from 'semantic-ui-react';
+import { Form, Input, Button, Modal } from 'semantic-ui-react';
 import { withFormik } from 'formik';
 import gql from 'graphql-tag';
 import { compose, graphql } from 'react-apollo';
+import findIndex from 'lodash/findIndex';
+
+import { allTeamsQuery } from '../graphql/team';
 
 const AddChannelModal = ({
   open,
   onClose,
-  teamName,
   values,
-  handelChange,
-  handelBlur,
+  handleChange,
+  handleBlur,
   handleSubmit,
   isSubmitting,
 }) => (
   <Modal open={open} onClose={onClose}>
-    <Modal.Header>{teamName}</Modal.Header>
+    <Modal.Header>Agregar canal</Modal.Header>
     <Modal.Content>
       <Form>
         <Form.Field>
           <Input
-            values={values.name}
-            onChange={handelChange}
-            onBlur={handelBlur}
+            value={values.name}
+            onChange={handleChange}
+            onBlur={handleBlur}
             name="name"
             fluid
             placeholder="Nombre del canal"
           />
         </Form.Field>
-        <Form.Group widths="equals">
-          <Button
-            disabled={isSubmitting}
-            onClick={onClose}
-            fluid
-          >
-            Cancelar
+        <Form.Group widths="equal">
+          <Button disabled={isSubmitting} fluid onClick={onClose}>
+            Cancel
           </Button>
-          <Button
-            disabled={isSubmitting}
-            onClick={handleSubmit}
-            fluid
-          >
-            Crear Canal
+          <Button disabled={isSubmitting} onClick={handleSubmit} fluid>
+            Create Channel
           </Button>
         </Form.Group>
       </Form>
@@ -50,8 +44,14 @@ const AddChannelModal = ({
 );
 
 const createChannelMutation = gql`
-  mutation ($teamId: Int!, $name: String!) {
-    createChannel(teamId: $teamId, name: $name)
+  mutation($teamId: Int!, $name: String!) {
+    createChannel(teamId: $teamId, name: $name) {
+      ok
+      channel {
+        id
+        name
+      }
+    }
   }
 `;
 
@@ -59,20 +59,32 @@ export default compose(
   graphql(createChannelMutation),
   withFormik({
     mapPropsToValues: () => ({ name: '' }),
-    validate: (values) => {
-      const errors = {};
-      if (!values.name) {
-        errors.name = 'Requerido';
-      }
-      return errors;
-    },
-    handleSubmit: async (
-      values,
-      { prop: { onClose, teamId, mutate }, setSubmitting },
-    ) => {
-      const response = await mutate({ variables: { teamId, name: values.name } });
-      // eslint-disable-next-line no-console
-      console.log(response);
+    handleSubmit: async (values, { props: { onClose, teamId, mutate }, setSubmitting }) => {
+      await mutate({
+        variables: { teamId, name: values.name },
+        optimisticResponse: {
+          createChannel: {
+            __typename: 'Mutation',
+            ok: true,
+            channel: {
+              __typename: 'Channel',
+              id: -1,
+              name: values.name,
+            },
+          },
+        },
+        update: (store, { data: { createChannel } }) => {
+          const { ok, channel } = createChannel;
+          if (!ok) {
+            return;
+          }
+
+          const data = store.readQuery({ query: allTeamsQuery });
+          const teamIdx = findIndex(data.allTeams, ['id', teamId]);
+          data.allTeams[teamIdx].channels.push(channel);
+          store.writeQuery({ query: allTeamsQuery, data });
+        },
+      });
       onClose();
       setSubmitting(false);
     },
