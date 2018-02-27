@@ -4,42 +4,44 @@ import decode from 'jwt-decode';
 import Channels from '../components/Channels';
 import Teams from '../components/Teams';
 import AddChannelModal from '../components/AddChannelModal';
-import InvitePeoplelModal from '../components/InvitePeoplelModal';
+import InvitePeopleModal from '../components/InvitePeopleModal';
 
 export default class Sidebar extends React.Component {
   state = {
     openAddChannelModal: false,
-    openInvitePeoplelModal: false,
+    openInvitePeopleModal: false,
   };
 
-  handleCloseAddChannelModal = () => {
-    this.setState({ openAddChannelModal: false });
+  toggleAddChannelModal = (e) => {
+    if (e) {
+      e.preventDefault();
+    }
+    this.setState(state => ({ openAddChannelModal: !state.openAddChannelModal }));
   };
 
-  handleAddChannelClick = () => {
-    this.setState({ openAddChannelModal: true });
-  };
-
-  handleInvitePeopleClick = () => {
-    this.setState({ openInvitePeoplelModal: true });
-  };
-
-  handleCloseInvitePeopleClick = () => {
-    this.setState({ openInvitePeoplelModal: false });
+  toggleInvitePeopleModal = (e) => {
+    if (e) {
+      e.preventDefault();
+    }
+    this.setState(state => ({ openInvitePeopleModal: !state.openInvitePeopleModal }));
   };
 
   render() {
     const { teams, team } = this.props;
-    const { openInvitePeoplelModal, openAddChannelModal } = this.state;
+    const { openInvitePeopleModal, openAddChannelModal } = this.state;
 
     let username = '';
+    let isOwner = false;
+
     try {
       const token = localStorage.getItem('token');
       const { user } = decode(token);
       // eslint-disable-next-line prefer-destructuring
       username = user.username;
+      isOwner = user.id === team.owner;
     } catch (err) {
-      // eslint-disable-next-line no-empty
+      // eslint-disable-next-line no-console
+      console.log(err);
     }
 
     return [
@@ -51,19 +53,20 @@ export default class Sidebar extends React.Component {
         teamId={team.id}
         channels={team.channels}
         users={[{ id: 1, name: 'slackbot' }, { id: 2, name: 'user1' }]}
-        onAddChannelClick={this.handleAddChannelClick}
-        onInvitePeopleClick={this.handleInvitePeopleClick}
+        onAddChannelClick={this.toggleAddChannelModal}
+        onInvitePeopleClick={this.toggleInvitePeopleModal}
+        isOwner={isOwner}
       />,
       <AddChannelModal
         teamId={team.id}
-        onClose={this.handleCloseAddChannelModal}
+        onClose={this.toggleAddChannelModal}
         open={openAddChannelModal}
         key="sidebar-add-channel-modal"
       />,
-      <InvitePeoplelModal
+      <InvitePeopleModal
         teamId={team.id}
-        onClose={this.handleCloseInvitePeopleClick}
-        open={openInvitePeoplelModal}
+        onClose={this.toggleInvitePeopleModal}
+        open={openInvitePeopleModal}
         key="invite-people-modal"
       />,
     ];

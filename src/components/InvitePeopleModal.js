@@ -6,7 +6,7 @@ import { compose, graphql } from 'react-apollo';
 
 import normalizeErrors from '../normalizeErrors';
 
-const InvitePeoplelModal = ({
+const InvitePeopleModal = ({
   open,
   onClose,
   values,
@@ -76,4 +76,4 @@ export default compose(
       }
     },
   }),
-)(InvitePeoplelModal);
+)(InvitePeopleModal);
