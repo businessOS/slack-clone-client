@@ -10,6 +10,8 @@
     "apollo-link-context": "^1.0.5",
     "apollo-link-error": "^1.0.6",
     "apollo-link-http": "1.3.3",
+    "apollo-link-ws": "^1.0.7",
+    "apollo-utilities": "^1.0.8",
     "formik": "^0.11.11",
     "graphql": "0.11.7",
     "graphql-tag": "^2.7.3",
@@ -25,6 +27,7 @@
     "semantic-ui-css": "^2.2.14",
     "semantic-ui-react": "^0.78.2",
     "styled-components": "^3.1.6",
+    "subscriptions-transport-ws": "^0.9.6",
     "tslint": "^5.9.1",
     "yup": "^0.24.1"
   },
