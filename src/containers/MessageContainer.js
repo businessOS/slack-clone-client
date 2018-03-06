@@ -20,10 +20,29 @@ const newChannelMessageSubscription = gql`
 
 class MessageContainer extends React.Component {
   componentWillMount() {
+    this.unsubscribe = this.subscribe(this.props.channelId);
+  }
+
+  componentWillReceiveProps({ channelId }) {
+    if (this.props.channelId !== channelId) {
+      if (this.unsubscribe) {
+        this.unsubscribe();
+      }
+      this.unsubscribe = this.subscribe(channelId);
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.unsubscribe) {
+      this.unsubscribe();
+    }
+  }
+
+  subscribe = channelId =>
     this.props.data.subscribeToMore({
       document: newChannelMessageSubscription,
       variables: {
-        channelId: this.props.channelId,
+        channelId,
       },
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData) {
@@ -36,7 +55,6 @@ class MessageContainer extends React.Component {
         };
       },
     });
-  }
 
   render() {
     const { data: { loading, messages } } = this.props;
@@ -48,7 +66,7 @@ class MessageContainer extends React.Component {
               <Comment.Content>
                 <Comment.Author as="a">{m.user.username}</Comment.Author>
                 <Comment.Metadata>
-                  <div>{m.createdAt}</div>
+                  <div>{m.created_at}</div>
                 </Comment.Metadata>
                 <Comment.Text>{m.text}</Comment.Text>
                 <Comment.Actions>
@@ -70,10 +88,8 @@ const messagesQuery = gql`
       text
       user {
         username
-        __typename
       }
       createdAt
-      __typename
     }
   }
 `;
@@ -82,4 +98,7 @@ export default graphql(messagesQuery, {
   variables: props => ({
     channelId: props.channelId,
   }),
+  options: {
+    fetchPolicy: 'network-only',
+  },
 })(MessageContainer);
