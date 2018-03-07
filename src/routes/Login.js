@@ -1,7 +1,7 @@
 import React from 'react';
 import { extendObservable } from 'mobx';
 import { observer } from 'mobx-react';
-import { Form, Message, Button, Input, Container, Header } from 'semantic-ui-react';
+import { Message, Form, Button, Input, Container, Header } from 'semantic-ui-react';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
@@ -71,14 +71,14 @@ class Login extends React.Component {
               onChange={this.onChange}
               value={password}
               type="password"
-              placeholder="Password"
+              placeholder="Contraseña"
               fluid
             />
           </Form.Field>
           <Button onClick={this.onSubmit}>Submit</Button>
         </Form>
         {errorList.length ? (
-          <Message error header="Existen algunos errores con su envio" list={errorList} />
+          <Message error header="Existen algunos errores" list={errorList} />
         ) : null}
       </Container>
     );

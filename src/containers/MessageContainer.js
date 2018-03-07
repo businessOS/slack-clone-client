@@ -13,7 +13,7 @@ const newChannelMessageSubscription = gql`
       user {
         username
       }
-      createdAt
+      created_at
     }
   }
 `;
@@ -51,7 +51,7 @@ class MessageContainer extends React.Component {
 
         return {
           ...prev,
-          messages: [...prev.messages, subscriptionData.data.newChannelMessage],
+          messages: [...prev.messages, subscriptionData.newChannelMessage],
         };
       },
     });
@@ -89,7 +89,7 @@ const messagesQuery = gql`
       user {
         username
       }
-      createdAt
+      created_at
     }
   }
 `;
